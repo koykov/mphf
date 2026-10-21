@@ -1,0 +1,3 @@
+# Minimal Perfect Hash Function
+
+TODO...
