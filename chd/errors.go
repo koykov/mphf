@@ -1,4 +1,4 @@
-package mphf
+package chd
 
 import "errors"
 

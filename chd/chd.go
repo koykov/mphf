@@ -1,10 +1,12 @@
-package mphf
+package chd
 
-type chd[T Key] struct {
-	base
+import "github.com/koykov/mphf"
+
+type chd[T mphf.Key] struct {
+	seed T
 }
 
-func NewCHD[T Key](keys []T, options ...Option) (Interface[T], error) {
+func New[T mphf.Key](keys []T, options ...Option[T]) (mphf.Interface[T], error) {
 	if len(keys) == 0 {
 		return nil, ErrEmpty
 	}
