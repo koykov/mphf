@@ -15,3 +15,9 @@ func WithSalt[T mphf.Key](salt T) Option[T] {
 		x.salt = salt
 	}
 }
+
+func WithHasher[T mphf.Key](hasher Hasher[T]) Option[T] {
+	return func(x *chd[T]) {
+		x.hasher = hasher
+	}
+}

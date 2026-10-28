@@ -7,8 +7,9 @@ import (
 )
 
 type chd[T mphf.Key] struct {
-	seed T
-	salt T
+	seed   T
+	salt   T
+	hasher Hasher[T]
 }
 
 func New[T mphf.Key](keys []T, options ...Option[T]) (mphf.Interface[T], error) {
