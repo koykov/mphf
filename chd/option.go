@@ -9,3 +9,9 @@ func WithSeed[T mphf.Key](seed T) Option[T] {
 		x.seed = seed
 	}
 }
+
+func WithSalt[T mphf.Key](salt T) Option[T] {
+	return func(x *chd[T]) {
+		x.salt = salt
+	}
+}
