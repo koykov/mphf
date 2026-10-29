@@ -20,9 +20,7 @@ func New[T mphf.Key](keys []T, options ...Option[T]) (mphf.Interface[T], error) 
 		return nil, ErrEmpty
 	}
 
-	x := chd[T]{
-		// ...
-	}
+	x := chd[T]{}
 	for _, fn := range options {
 		fn(&x)
 	}
