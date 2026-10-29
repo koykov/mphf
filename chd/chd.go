@@ -1,6 +1,7 @@
 package chd
 
 import (
+	"math/bits"
 	"slices"
 
 	"github.com/koykov/mphf"
@@ -11,6 +12,7 @@ const defaultLoadFactor = .85
 type chd[T mphf.Key] struct {
 	lf     float64
 	seed   T
+	seeds  []uint32
 	salt   T
 	hasher Hasher[T]
 }
@@ -29,6 +31,19 @@ func New[T mphf.Key](keys []T, options ...Option[T]) (mphf.Interface[T], error) 
 	}
 	if x.lf == 0 {
 		x.lf = defaultLoadFactor
+	}
+
+	m := uint64(float64(len(keys)) / x.lf)
+	m = 1 << bits.Len64(m) // get nearest pow2
+
+	// seeds := make([]uint32, m)
+	bb := make([]bucket[T], m)
+	for i := uint64(0); i < m; i++ {
+		bb[i].slot = T(i)
+	}
+	for i := 0; i < len(keys); i++ {
+		pos := x.hasher.Hash(keys[i])
+		bb[pos].keys = append(bb[pos].keys, keys[i])
 	}
 
 	slices.Sort(keys)
