@@ -4,6 +4,12 @@ import "github.com/koykov/mphf"
 
 type Option[T mphf.Key] func(x *chd[T])
 
+func WithLoadFactor[T mphf.Key](factor float64) Option[T] {
+	return func(x *chd[T]) {
+		x.lf = factor
+	}
+}
+
 func WithSeed[T mphf.Key](seed T) Option[T] {
 	return func(x *chd[T]) {
 		x.seed = seed
