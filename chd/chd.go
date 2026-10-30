@@ -3,7 +3,9 @@ package chd
 import (
 	"math/bits"
 	"slices"
+	"sort"
 
+	"github.com/koykov/bitvector"
 	"github.com/koykov/mphf"
 )
 
@@ -37,7 +39,7 @@ func New[T mphf.Key](keys []T, options ...Option[T]) (mphf.Interface[T], error) 
 	m = 1 << bits.Len64(m) // get nearest pow2
 
 	// seeds := make([]uint32, m)
-	bb := make([]bucket[T], m)
+	bb := make(buckets[T], m)
 	for i := uint64(0); i < m; i++ {
 		bb[i].slot = T(i)
 	}
@@ -52,8 +54,17 @@ func New[T mphf.Key](keys []T, options ...Option[T]) (mphf.Interface[T], error) 
 		if i > 0 && key == pkey {
 			return nil, ErrDuplicate
 		}
-		// todo add key to mphf
+		pkey = key
+		h := x.hasher.Hash(key)
+		b := &bb[h]
+		b.keys = append(b.keys, key)
 	}
+
+	sort.Sort(bb)
+
+	vec0, _ := bitvector.NewVector(m)
+	vec1, _ := bitvector.NewVector(m)
+	_, _ = vec0, vec1
 
 	return &x, nil
 }
