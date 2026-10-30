@@ -1,6 +1,7 @@
 package chd
 
 import (
+	"math"
 	"math/bits"
 	"slices"
 	"sort"
@@ -38,7 +39,6 @@ func New[T mphf.Key](keys []T, options ...Option[T]) (mphf.Interface[T], error) 
 	m := uint64(float64(len(keys)) / x.lf)
 	m = 1 << bits.Len64(m) // get nearest pow2
 
-	// seeds := make([]uint32, m)
 	bb := make(buckets[T], m)
 	for i := uint64(0); i < m; i++ {
 		bb[i].slot = T(i)
@@ -64,7 +64,25 @@ func New[T mphf.Key](keys []T, options ...Option[T]) (mphf.Interface[T], error) 
 
 	vec0, _ := bitvector.NewVector(m)
 	vec1, _ := bitvector.NewVector(m)
-	_, _ = vec0, vec1
+	seeds := make([]uint32, m)
+	var mxs uint32
+	for i := uint64(0); i < m; i++ {
+		b := &bb[i]
+		for j := 0; j < math.MaxUint16; j++ {
+			vec1.Reset()
+			for _, k := range b.keys {
+				h := x.hasher.Hash(k)
+				if vec0.Get(h) != 0 || vec1.Get(h) != 0 {
+					// use next seed
+				}
+				vec1.Set(h)
+			}
+			vec0.Merge(vec1)
+			seeds[b.slot] = uint32(j)
+			mxs = max(mxs, uint32(j))
+			// use next bucket
+		}
+	}
 
 	return &x, nil
 }
