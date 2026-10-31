@@ -1,6 +1,7 @@
 package chd
 
 import (
+	"errors"
 	"math"
 	"math/bits"
 	"slices"
@@ -13,11 +14,12 @@ import (
 const defaultLoadFactor = .85
 
 type chd[T mphf.Key] struct {
-	lf     float64
-	seed   T
-	seeds  []uint32
-	salt   T
-	hasher Hasher[T]
+	lf       float64
+	seed     T
+	seeds    []uint32
+	salt     T
+	attempts int
+	hasher   Hasher[T]
 }
 
 func New[T mphf.Key](keys []T, options ...Option[T]) (mphf.Interface[T], error) {
@@ -65,7 +67,10 @@ func New[T mphf.Key](keys []T, options ...Option[T]) (mphf.Interface[T], error) 
 	vec0, _ := bitvector.NewVector(m)
 	vec1, _ := bitvector.NewVector(m)
 	seeds := make([]uint32, m)
-	var mxs uint32
+	var (
+		mxs uint32
+		err error
+	)
 	for i := uint64(0); i < m; i++ {
 		b := &bb[i]
 		for j := 0; j < math.MaxUint16; j++ {
@@ -74,16 +79,29 @@ func New[T mphf.Key](keys []T, options ...Option[T]) (mphf.Interface[T], error) 
 				h := x.hasher.Hash(k)
 				if vec0.Get(h) != 0 || vec1.Get(h) != 0 {
 					// use next seed
+					goto fwdseed
 				}
 				vec1.Set(h)
 			}
-			vec0.Merge(vec1)
+			_ = vec0.Merge(vec1)
 			seeds[b.slot] = uint32(j)
 			mxs = max(mxs, uint32(j))
 			// use next bucket
+			goto fwdbucket
+
+		fwdseed:
+			x.attempts++
 		}
+		err = errors.New("no attempts left")
+
+	fwdbucket:
 	}
 
+	if err != nil {
+		return nil, err
+	}
+
+	x.seeds = seeds
 	return &x, nil
 }
 
