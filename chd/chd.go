@@ -66,7 +66,7 @@ func New[T mphf.Key](keys []T, options ...Option[T]) (mphf.Interface[T], error) 
 
 	vec0, _ := bitvector.NewVector(m)
 	vec1, _ := bitvector.NewVector(m)
-	seeds := make([]uint32, m)
+	x.seeds = make([]uint32, m)
 	var (
 		mxs uint32
 		err error
@@ -84,7 +84,7 @@ func New[T mphf.Key](keys []T, options ...Option[T]) (mphf.Interface[T], error) 
 				vec1.Set(h)
 			}
 			_ = vec0.Merge(vec1)
-			seeds[b.slot] = uint32(j)
+			x.seeds[b.slot] = uint32(j)
 			mxs = max(mxs, uint32(j))
 			// use next bucket
 			goto fwdbucket
@@ -96,18 +96,15 @@ func New[T mphf.Key](keys []T, options ...Option[T]) (mphf.Interface[T], error) 
 
 	fwdbucket:
 	}
-
 	if err != nil {
 		return nil, err
 	}
 
-	x.seeds = seeds
 	return &x, nil
 }
 
 func (x *chd[T]) Len() int {
-	// todo implement me
-	return 0
+	return len(x.seeds)
 }
 
 func (x *chd[T]) Size() int {
